@@ -18,35 +18,35 @@ function UserComments() {
 
         const usersResponse = await axios.get('http://localhost:3001/user/list');
         const allUsers = usersResponse.data;
-        
+
         const userComments = [];
-        
-        for (const otherUser of allUsers) {
-          try {
-            const photosResponse = await axios.get(`http://localhost:3001/photosOfUser/${otherUser._id}`);
-            const photos = photosResponse.data;
-            
-            photos.forEach(photo => {
-              if (photo.comments) {
-                photo.comments.forEach(comment => {
-                  if (comment.user._id === userId) {
-                    userComments.push({
-                      ...comment,
-                      photo: {
-                        _id: photo._id,
-                        file_name: photo.file_name,
-                        user_id: photo.user_id
-                      }
-                    });
-                  }
-                });
-              }
-            });
-          } catch (error) {
-            // No photos
-          }
-        }
-        
+
+        const photoPromises = allUsers.map(otherUser => axios.get(`http://localhost:3001/photosOfUser/${otherUser._id}`)
+          .then(photosResponse => photosResponse.data)
+          .catch(() => [])
+        );
+
+        const allPhotos = await Promise.all(photoPromises);
+
+        allPhotos.forEach(photos => {
+          photos.forEach(photo => {
+            if (photo.comments) {
+              photo.comments.forEach(comment => {
+                if (comment.user._id === userId) {
+                  userComments.push({
+                    ...comment,
+                    photo: {
+                      _id: photo._id,
+                      file_name: photo.file_name,
+                      user_id: photo.user_id
+                    }
+                  });
+                }
+              });
+            }
+          });
+        });
+
         setComments(userComments);
       } catch (error) {
         console.error('Error fetching user comments:', error);
@@ -75,7 +75,7 @@ function UserComments() {
       <Typography variant="h4" gutterBottom>
         Comments by {user.first_name} {user.last_name}
       </Typography>
-      
+
       {comments.length === 0 ? (
         <Typography>No comments yet.</Typography>
       ) : (

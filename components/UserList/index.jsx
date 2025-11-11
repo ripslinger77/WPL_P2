@@ -23,44 +23,35 @@ function UserList({ advancedFeaturesEnabled }) {
         setUsers(response.data);
 
         if (advancedFeaturesEnabled) {
+          const photoPromises = response.data.map(user => axios.get(`http://localhost:3001/photosOfUser/${user._id}`)
+              .then(photosResponse => ({ userId: user._id, photos: photosResponse.data }))
+              .catch(() => ({ userId: user._id, photos: [] }))
+          );
+          
+          const allUsersPhotos = await Promise.all(photoPromises);
+          
           const counts = {};
-          for (const user of response.data) {
-            try {
-              const photosResponse = await axios.get(`http://localhost:3001/photosOfUser/${user._id}`);
-              const photos = photosResponse.data;
-              
-              counts[user._id] = {
-                photoCount: photos.length,
-                commentCount: 0
-              };
-              
-              const allUsersResponse = await axios.get('http://localhost:3001/user/list');
-              let commentCount = 0;
-              
-              for (const otherUser of allUsersResponse.data) {
-                try {
-                  const otherPhotosResponse = await axios.get(`http://localhost:3001/photosOfUser/${otherUser._id}`);
-                  const otherPhotos = otherPhotosResponse.data;
-                  
-                  otherPhotos.forEach(photo => {
-                    if (photo.comments) {
-                      photo.comments.forEach(comment => {
-                        if (comment.user._id === user._id) {
-                          commentCount++;
-                        }
-                      });
-                    }
-                  });
-                } catch (err) {
-                  // No photos
-                }
+          
+          allUsersPhotos.forEach(({ userId, photos }) => {
+            counts[userId] = {
+              photoCount: photos.length,
+              commentCount: 0
+            };
+          });
+          
+          allUsersPhotos.forEach(({ photos }) => {
+            photos.forEach(photo => {
+              if (photo.comments) {
+                photo.comments.forEach(comment => {
+                  const commenterId = comment.user._id;
+                  if (counts[commenterId]) {
+                    counts[commenterId].commentCount++;
+                  }
+                });
               }
-              
-              counts[user._id].commentCount = commentCount;
-            } catch (error) {
-              counts[user._id] = { photoCount: 0, commentCount: 0 };
-            }
-          }
+            });
+          });
+          
           setUserCounts(counts);
         }
       } catch (error) {
