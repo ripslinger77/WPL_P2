@@ -8,17 +8,17 @@ function TopBar({ advancedFeaturesEnabled, onToggleAdvancedFeatures }) {
     <AppBar className="topbar-appBar" position="absolute">
       <Toolbar>
         <Typography variant="h5" color="inherit" style={{ flexGrow: 1 }}>
-          Your Name Here
+          Sriman Sathish
         </Typography>
-        
+
         <FormControlLabel
-          control={
+          control={(
             <Checkbox
               checked={advancedFeaturesEnabled || false}
               onChange={onToggleAdvancedFeatures}
               style={{ color: 'white' }}
             />
-          }
+          )}
           label="Enable Advanced Features"
           style={{ color: 'white' }}
         />
