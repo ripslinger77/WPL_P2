@@ -13,43 +13,23 @@ function UserComments() {
   useEffect(() => {
     const fetchUserComments = async () => {
       try {
-        const userResponse = await axios.get(`http://localhost:3001/user/${userId}`);
+        // 1. Run requests for user details and comments in parallel
+        const [userResponse, commentsResponse] = await Promise.all([
+          axios.get(`http://localhost:3001/user/${userId}`),
+          axios.get(`http://localhost:3001/commentsOfUser/${userId}`)
+        ]);
+
+        // 2. Set state with the results
         setUser(userResponse.data);
+        setComments(commentsResponse.data);
 
-        const usersResponse = await axios.get('http://localhost:3001/user/list');
-        const allUsers = usersResponse.data;
-
-        const userComments = [];
-
-        const photoPromises = allUsers.map(otherUser => axios.get(`http://localhost:3001/photosOfUser/${otherUser._id}`)
-          .then(photosResponse => photosResponse.data)
-          .catch(() => [])
-        );
-
-        const allPhotos = await Promise.all(photoPromises);
-
-        allPhotos.forEach(photos => {
-          photos.forEach(photo => {
-            if (photo.comments) {
-              photo.comments.forEach(comment => {
-                if (comment.user._id === userId) {
-                  userComments.push({
-                    ...comment,
-                    photo: {
-                      _id: photo._id,
-                      file_name: photo.file_name,
-                      user_id: photo.user_id
-                    }
-                  });
-                }
-              });
-            }
-          });
-        });
-
-        setComments(userComments);
       } catch (error) {
-        console.error('Error fetching user comments:', error);
+        // Handle case where user exists but has no comments
+        if (error.response && error.response.status === 404) {
+          setComments([]);
+        } else {
+          console.error('Error fetching user comments:', error);
+        }
       }
     };
 

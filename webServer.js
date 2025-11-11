@@ -170,6 +170,47 @@ app.get('/photosOfUser/:id', async function (request, response) {
   }
 });
 
+/**
+ * URL /commentsOfUser/:id - Returns all comments made by User (id).
+ */
+app.get('/commentsOfUser/:id', async function (request, response) {
+  try {
+    const userId = request.params.id;
+    
+    // Find all photos that contain at least one comment by the user_id
+    const photos = await Photo.find({ "comments.user_id": userId });
+
+    if (!photos || photos.length === 0) {
+      return response.status(200).send([]);
+    }
+
+    const userComments = [];
+    photos.forEach(photo => {
+      photo.comments.forEach(comment => {
+        if (comment.user_id.toString() === userId) {
+          userComments.push({
+            _id: comment._id,
+            comment: comment.comment,
+            date_time: comment.date_time,
+            user_id: comment.user_id,
+            photo: {
+              _id: photo._id,
+              file_name: photo.file_name,
+              user_id: photo.user_id
+            }
+          });
+        }
+      });
+    });
+
+    return response.status(200).send(userComments);
+
+  } catch (error) {
+    console.error('Error in /commentsOfUser/:id:', error);
+    return response.status(400).send('Invalid user ID');
+  }
+});
+
 const server = app.listen(portno, function () {
   const port = server.address().port;
   console.log(
