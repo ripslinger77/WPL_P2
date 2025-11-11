@@ -57,31 +57,6 @@ function PhotoShare() {
           <Grid item sm={9}>
             <Paper className="main-grid-item">
               <Routes>
-                <Route
-                  path="/"
-                  element={(
-                    <Typography variant="body1">
-                      Welcome to your photosharing app! This
-                      {' '}
-                      <a href="https://mui.com/components/paper/" rel="noreferrer" target="_blank">Paper</a>
-                      {' '}
-                      component displays the main content of the application. The
-                      {'sm={9}'}
-                      {' '}
-                      prop in the
-                      {' '}
-                      <a href="https://mui.com/components/grid/" rel="noreferrer" target="_blank">Grid</a>
-                      {' '}
-                      item
-                      component makes it responsively display 9/12 of the
-                      window. The Routes component enables us to conditionally
-                      render different components to this part of the screen.
-                      You don&apos;t need to display anything here on the
-                      homepage, so you should delete this Route component once
-                      you get started.
-                    </Typography>
-                  )}
-                />
                 <Route path="/users/:userId" element={<UserDetailRoute advancedFeaturesEnabled={advancedFeaturesEnabled} />} />
                 <Route path="/photos/:userId" element={<UserPhotosRoute advancedFeaturesEnabled={advancedFeaturesEnabled} />} />
                 <Route path="/photo/:userId/:photoIndex" element={<UserPhotosRoute advancedFeaturesEnabled={advancedFeaturesEnabled} />} />
