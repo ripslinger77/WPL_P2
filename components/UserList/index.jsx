@@ -74,17 +74,17 @@ function UserList({ advancedFeaturesEnabled }) {
               <ListItemText primary={`${user.first_name} ${user.last_name}`} />
               
               {advancedFeaturesEnabled && userCounts[user._id] && (
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                   <Badge 
                     badgeContent={userCounts[user._id].photoCount} 
                     color="success"
-                    style={{ marginRight: '4px' }}
+                    style={{ marginRight: '24px' }}
                   />
                   
                   <Link 
                     to={`/comments/${user._id}`}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ textDecoration: 'none' }}
+                    style={{ textDecoration: 'none', display: 'flex' }}
                   >
                     <Badge 
                       badgeContent={userCounts[user._id].commentCount} 
