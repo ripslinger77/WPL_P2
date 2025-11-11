@@ -113,12 +113,27 @@ app.get('/user/list', async function (request, response) {
  */
 app.get('/user/:id', async function (request, response) {
   try {
-    const user = await User.findById(request.params.id);
+    const user = await User.findById(
+      request.params.id,
+      '_id first_name last_name location description occupation'
+    );
+    
     if (!user) {
       console.log('User with _id:' + request.params.id + ' not found.');
       return response.status(400).send('Not found');
     }
-    return response.status(200).send(user);
+
+    const userDetails = {
+      _id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      location: user.location,
+      description: user.description,
+      occupation: user.occupation
+    };
+    
+    return response.status(200).send(userDetails);
+    
   } catch (error) {
     console.error('Error in /user/:id:', error);
     return response.status(400).send('Invalid user ID');
@@ -130,20 +145,24 @@ app.get('/user/:id', async function (request, response) {
  */
 app.get('/photosOfUser/:id', async function (request, response) {
   try {
-    const photos = await Photo.find({ user_id: request.params.id });
+    const photos = await Photo.find(
+      { user_id: request.params.id },
+      '_id file_name date_time user_id comments'
+    );
     
     if (!photos || photos.length === 0) {
       console.log('Photos for user _id:' + request.params.id + ' not found.');
-      return response.status(400).send('Photos not found');
+      return response.status(200).send([]);
     }
 
     const photosWithUserDetails = await Promise.all(
       photos.map(async (photo) => {
-        const photoObject = photo.toObject();
         
-        if (photoObject.comments && photoObject.comments.length > 0) {
-          photoObject.comments = await Promise.all(
-            photoObject.comments.map(async (comment) => {
+        let processedComments = [];
+        
+        if (photo.comments && photo.comments.length > 0) {
+          processedComments = await Promise.all(
+            photo.comments.map(async (comment) => {
               const user = await User.findById(comment.user_id, '_id first_name last_name');
               return {
                 _id: comment._id,
@@ -159,7 +178,13 @@ app.get('/photosOfUser/:id', async function (request, response) {
           );
         }
         
-        return photoObject;
+        return {
+          _id: photo._id,
+          file_name: photo.file_name,
+          date_time: photo.date_time,
+          user_id: photo.user_id,
+          comments: processedComments
+        };
       })
     );
 
